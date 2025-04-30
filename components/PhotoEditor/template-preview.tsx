@@ -7,7 +7,7 @@ import { drawTemplateOnCanvas } from "@/lib/canvasUtils";
 import { useImageEditor } from "@/contexts/ImageEditorContext";
 
 export interface TemplatePreviewProps {
-  selectedTemplate: Template | null;
+  selectedTemplate: { template: Template, id: string } | null;
   beforeImageUrl: string | null;
   afterImageUrl: string | null;
   beforeCropPixels: Area | null | undefined;
@@ -79,7 +79,9 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({
           afterCropPixels,
           selectedTemplate,
           canvas.width,
-          canvas.height
+          canvas.height,
+          caption,
+          labelStyle
         );
       } catch (err) {
         console.error("Error drawing preview canvas:", err);

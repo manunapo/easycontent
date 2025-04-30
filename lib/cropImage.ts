@@ -22,7 +22,7 @@ export const createImage = (url: string): Promise<HTMLImageElement> =>
  */
 export function getRotation(rotation = 0) {
   const angle = rotation * Math.PI / 180;
-  const { sin, cos, abs } = Math;
+  const { sin, cos } = Math;
 
   const sinAngle = sin(angle);
   const cosAngle = cos(angle);

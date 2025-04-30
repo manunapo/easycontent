@@ -5,16 +5,16 @@ import { Button } from "../ui/button";
 import { useImageEditor } from "@/contexts/ImageEditorContext";
 
 export default function ExportButton() {
-  const { handleExport, selectedOutputFormatIds } = useImageEditor();
+  const { handleExport, totalExportCount } = useImageEditor();
   return (
     <Button
       variant="outline"
       onClick={handleExport}
       className="w-full"
-      disabled={selectedOutputFormatIds.length === 0}
+      disabled={totalExportCount === 0}
     >
-      <Download className="w-4 h-4" />
-      Export Selected Formats ({selectedOutputFormatIds.length})
+      <Download className="w-4 h-4 mr-2" />
+      Export ({totalExportCount}) {totalExportCount === 1 ? 'File' : 'Files'}
     </Button>
   );
 }

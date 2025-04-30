@@ -3,7 +3,7 @@ import { useImageEditor } from "@/contexts/ImageEditorContext";
 import { OUTPUT_FORMATS, OutputFormatId } from "@/types";
 import { Label } from "@radix-ui/react-label";
 import { Check } from "lucide-react";
-import Icon from "../icons";
+import Icon from "../icon";
 
 export default function FormatHandler() {
   const {

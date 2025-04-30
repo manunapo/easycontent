@@ -11,6 +11,7 @@ interface CollapsableContainerProps {
   isOpen?: boolean;
   setIsOpen?: (isOpen: boolean) => void;
   enabled?: boolean;
+  isCollapsable?: boolean;
 }
 
 export default function CollapsableContainer({
@@ -20,18 +21,24 @@ export default function CollapsableContainer({
   isOpen = false,
   setIsOpen = () => {},
   enabled = true,
+  isCollapsable = true,
 }: CollapsableContainerProps) {
+  const effectiveIsOpen = !isCollapsable || isOpen;
+  const isInteractive = isCollapsable && enabled;
+
   const toggleOpen = () => {
-    if (enabled) {
+    if (isInteractive) {
       setIsOpen(!isOpen);
     }
   };
 
   const headerClasses = cn(
-    "flex justify-between items-center p-4 bg-gray-100",
+    "flex justify-between items-center py-2 px-4 bg-gray-100",
     {
-      "cursor-pointer hover:bg-gray-200": enabled,
-      "cursor-not-allowed opacity-60": !enabled,
+      "cursor-pointer hover:bg-gray-200": isInteractive,
+      "cursor-not-allowed": !enabled && isCollapsable,
+      "cursor-default": !isCollapsable,
+      "opacity-60": !enabled,
     }
   );
 
@@ -40,43 +47,45 @@ export default function CollapsableContainer({
   });
 
   return (
-    <div className={cn("border rounded-md overflow-hidden mb-4", { "bg-gray-50": !enabled })}>
+    <div className={cn("border rounded-md overflow-hidden", { "bg-gray-50": !enabled })}>
       <div
         className={headerClasses}
-        onClick={toggleOpen}
-        role="button"
-        tabIndex={enabled ? 0 : -1}
-        onKeyDown={(e) =>
-          enabled && (e.key === "Enter" || e.key === " ") && toggleOpen()
+        onClick={isInteractive ? toggleOpen : undefined}
+        role={isInteractive ? "button" : undefined}
+        tabIndex={isInteractive ? 0 : -1}
+        onKeyDown={
+          isInteractive
+            ? (e) => (e.key === "Enter" || e.key === " ") && toggleOpen()
+            : undefined
         }
-        aria-expanded={isOpen}
+        aria-expanded={isCollapsable ? effectiveIsOpen : undefined}
         aria-disabled={!enabled}
       >
         <div className={textClasses}>
-          <h3 className="font-normal">{title} -</h3>
+          <h3 className="font-normal">{title}</h3>
           {subtitle && (
             <p className="text-xs font-light italic">
               {subtitle}
             </p>
           )}
         </div>
-        <span
-          className={cn(
-            "transform transition-transform duration-200",
-            { "rotate-180": isOpen, "rotate-0": !isOpen },
-            { "text-gray-400": !enabled } // Mute chevron when disabled
-          )}
-        >
-          <ChevronDown className="w-4 h-4" />
-        </span>
+        {isCollapsable && (
+          <span
+            className={cn(
+              "transform transition-transform duration-200",
+              { "rotate-180": isOpen, "rotate-0": !isOpen },
+              { "text-gray-400": !enabled }
+            )}
+          >
+            <ChevronDown className="w-4 h-4" />
+          </span>
+        )}
       </div>
-      {/* Content remains visually unchanged but won't expand if disabled */}
       <div
         className={`transition-all duration-300 ease-in-out overflow-hidden ${
-          isOpen && enabled ? "max-h-screen opacity-100" : "max-h-0 opacity-0"
+          effectiveIsOpen ? "max-h-screen opacity-100" : "max-h-0 opacity-0"
         }`}
-        // Ensure content is hidden if disabled, even if isOpen was true initially
-        style={{ maxHeight: isOpen && enabled ? '1000px' : '0px' }} // Use a large enough max-height or calculate dynamically if needed
+        style={{ maxHeight: effectiveIsOpen ? '1000px' : '0px' }}
       >
         <div className="p-4 border-t">{children}</div>
       </div>

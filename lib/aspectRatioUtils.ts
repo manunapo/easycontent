@@ -1,4 +1,5 @@
 import { OutputFormat } from "@/types";
+import { getTemplateById } from "./templates";
 
 /**
  * Calculates the aspect ratio needed for the cropping tool based on the
@@ -18,21 +19,12 @@ export const getCropAspectRatio = (
         return finalAspect; // Default to final aspect if no template selected
     }
 
-    switch (templateId) {
-        case 'side-by-side':
-            // Each image takes half the width, full height
-            // Aspect = (Width/2) / Height = (Width/Height) / 2 = finalAspect / 2
-            return finalAspect / 2;
-        case 'stacked':
-            // Each image takes full width, half the height
-            // Aspect = Width / (Height/2) = (Width/Height) * 2 = finalAspect * 2
-            return finalAspect * 2;
-        case 'diagonal':
-            // Each image covers the full area but is clipped.
-            // Cropping to the final aspect ratio is most intuitive here.
-            return finalAspect;
-        default:
-            console.warn(`Unknown templateId "${templateId}" in getCropAspectRatio, defaulting to final aspect.`);
-            return finalAspect;
+    const template = getTemplateById(templateId);
+    if (template && template.template) {
+        return template.template.getCropAspectRatio(outputFormat);
     }
+
+    // Fallback to final aspect ratio if template not found
+    console.warn(`Template not found: ${templateId}, using final aspect ratio`);
+    return finalAspect;
 }; 

@@ -1,47 +1,44 @@
 "use client";
 import { useImageEditor } from "@/contexts/ImageEditorContext";
-import { OUTPUT_FORMATS, OutputFormatId } from "@/types";
+import { AVAILABLE_TEMPLATES } from "@/lib/templates";
 import { Label } from "@radix-ui/react-label";
 import { Check } from "lucide-react";
-import Icon from "../icons";
 
-export default function FormatHandler() {
+export default function TemplateSelector() {
   const {
-    selectedOutputFormatIds,
-    handleOutputFormatToggle,
-    setActiveOutputFormatId,
-    activeOutputFormatId,
+    selectedTemplateIds,
+    handleTemplateToggle,
+    setSelectedTemplateId,
+    selectedTemplateId,
   } = useImageEditor();
 
-  const availableFormats = Object.values(OUTPUT_FORMATS);
-
-  const handleCheckedChange = (formatId: OutputFormatId) => {
-    handleOutputFormatToggle(formatId);
-    setActiveOutputFormatId(formatId);
+  const handleTemplateClick = (templateId: string) => {
+    handleTemplateToggle(templateId);
+    setSelectedTemplateId(templateId);
   };
+
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        {availableFormats.map((format) => (
-          <div key={format.id} className="flex items-center space-x-2">
-            {selectedOutputFormatIds.includes(format.id) ? (
+        {AVAILABLE_TEMPLATES.map((template) => (
+          <div key={template.id} className="flex items-center space-x-2">
+            {selectedTemplateIds.includes(template.id) ? (
               <Check className="w-4 h-4 text-green-500" />
             ) : (
               <Check className="w-4 h-4 text-gray-500" />
             )}
             <Label
-              htmlFor={`format-${format.id}`}
-              onClick={() => handleCheckedChange(format.id)}
+              htmlFor={`template-${template.id}`}
+              onClick={() => handleTemplateClick(template.id)}
               className={`cursor-pointer ${
-                activeOutputFormatId === format.id
+                selectedTemplateId === template.id
                   ? "font-bold text-primary"
                   : ""
               }`}
-              title="Click to set as active format for preview/cropping"
+              title="Click to set as active template for preview/cropping"
             >
               <div className="flex items-center gap-1">
-                <Icon icon={format.icon} />
-                {format.name} ({format.width}x{format.height})
+                {template.name}
               </div>
             </Label>
           </div>

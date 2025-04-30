@@ -1,32 +1,5 @@
 import { Area } from "react-easy-crop";
-import { Template } from "@/types";
-
-async function cropImage(imageUrl: string, pixelCrop: Area): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const image = new Image();
-    image.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = pixelCrop.width;
-      canvas.height = pixelCrop.height;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return reject(new Error("Failed to get canvas context"));
-      ctx.drawImage(
-        image,
-        pixelCrop.x,
-        pixelCrop.y,
-        pixelCrop.width,
-        pixelCrop.height,
-        0,
-        0,
-        pixelCrop.width,
-        pixelCrop.height
-      );
-      resolve(canvas.toDataURL("image/png")); // Resolve with data URL
-    };
-    image.onerror = reject;
-    image.src = imageUrl;
-  });
-}
+import { Template, CaptionState, LabelStyleState } from "@/types";
 
 export const drawPill = (
   context: CanvasRenderingContext2D,
@@ -39,18 +12,22 @@ export const drawPill = (
   bgColor: string,
   opacity: number
 ) => {
+  // Double the text size for better visibility
+  const scaledTextSize = textSize * 2;
+  
   // 1. Set font and measure text
-  context.font = `${textSize}px Arial`; // Assuming Arial for now
+  context.font = `${scaledTextSize}px Arial`; // Assuming Arial for now
   const textMetrics = context.measureText(text);
   const textWidth = textMetrics.width;
   // Estimate ascent/descent for more accurate height - this varies by font
   const actualHeight =
     textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
-  const textHeight = actualHeight > 0 ? actualHeight : textSize; // Fallback to textSize
+  const textHeight = actualHeight > 0 ? actualHeight : scaledTextSize; // Fallback to scaledTextSize
 
-  // 2. Calculate pill dimensions
-  const pillWidth = textWidth + padding * 2;
-  const pillHeight = textHeight + padding * 2;
+  // 2. Calculate pill dimensions - double the padding too
+  const scaledPadding = padding * 2;
+  const pillWidth = textWidth + scaledPadding * 2;
+  const pillHeight = textHeight + scaledPadding * 2;
   const borderRadius = pillHeight / 2;
 
   // Check if borderRadius is valid
@@ -95,66 +72,98 @@ export const drawPill = (
   context.fillText(text, x + pillWidth / 2, y + pillHeight / 2);
 };
 
+// Similar to drawPill but specifically for captions with positioning
+export const drawCaptionPill = (
+  context: CanvasRenderingContext2D,
+  caption: CaptionState,
+  canvasWidth: number,
+  canvasHeight: number
+) => {
+  if (!caption.text) return;
+  
+  // Set font size based on caption size (doubled for better visibility)
+  let textSize = 32; // Default doubled from 16
+  switch (caption.size) {
+    case "small":
+      textSize = 28; // Doubled from 14
+      break;
+    case "medium":
+      textSize = 36; // Doubled from 18
+      break;
+    case "large":
+      textSize = 48; // Doubled from 24
+      break;
+  }
+
+  context.font = `${textSize}px Arial`;
+  const textMetrics = context.measureText(caption.text);
+  const textWidth = textMetrics.width;
+  const padding = 20; // Doubled from 10
+  const pillWidth = textWidth + padding * 2;
+  const pillHeight = textSize + padding * 2;
+
+  // Calculate position based on caption.position
+  let x = 0;
+  let y = 0;
+
+  if (caption.position.includes("top")) {
+    y = padding;
+  } else if (caption.position.includes("middle")) {
+    y = canvasHeight / 2 - pillHeight / 2;
+  } else if (caption.position.includes("bottom")) {
+    y = canvasHeight - pillHeight - padding;
+  }
+
+  if (caption.position.includes("left")) {
+    x = padding;
+  } else if (caption.position.includes("center")) {
+    x = canvasWidth / 2 - pillWidth / 2;
+  } else if (caption.position.includes("right")) {
+    x = canvasWidth - pillWidth - padding;
+  }
+
+  // Draw the pill
+  drawPill(
+    context,
+    x,
+    y,
+    padding,
+    caption.text,
+    textSize/2, // We divide by 2 because drawPill will multiply by 2
+    caption.textColor,
+    caption.bgColor,
+    0.9 // slightly transparent by default
+  );
+};
+
 export const drawTemplateOnCanvas = async (
   ctx: CanvasRenderingContext2D,
   beforeImageUrl: string,
   afterImageUrl: string,
   beforeCropPixels: Area,
   afterCropPixels: Area,
-  template: Template,
+  templateConfig: { template: Template, id: string },
   canvasWidth: number,
-  canvasHeight: number
+  canvasHeight: number,
+  caption?: CaptionState,
+  labelStyle?: LabelStyleState
 ) => {
-  const beforeCroppedUrl = await cropImage(beforeImageUrl, beforeCropPixels);
-  const afterCroppedUrl = await cropImage(afterImageUrl, afterCropPixels);
+  // Create a map of images for the template
+  const images: Record<string, { url: string; cropArea: Area }> = {
+    before: { url: beforeImageUrl, cropArea: beforeCropPixels },
+    after: { url: afterImageUrl, cropArea: afterCropPixels },
+  };
 
-  const beforeImg = new Image();
-  const afterImg = new Image();
-  const loadPromises = [
-    new Promise((res) => {
-      beforeImg.onload = res;
-      beforeImg.src = beforeCroppedUrl;
-    }),
-    new Promise((res) => {
-      afterImg.onload = res;
-      afterImg.src = afterCroppedUrl;
-    }),
-  ];
-  await Promise.all(loadPromises);
-
+  // Clear the canvas
   ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-  if (template.id === "side-by-side") {
-    ctx.drawImage(beforeImg, 0, 0, canvasWidth / 2, canvasHeight);
-    ctx.drawImage(afterImg, canvasWidth / 2, 0, canvasWidth / 2, canvasHeight);
-  } else if (template.id === "top-bottom") {
-    ctx.drawImage(beforeImg, 0, 0, canvasWidth, canvasHeight / 2);
-    ctx.drawImage(afterImg, 0, canvasHeight / 2, canvasWidth, canvasHeight / 2);
-  } else {
-    ctx.drawImage(beforeImg, 0, 0, canvasWidth / 2, canvasHeight);
-    ctx.drawImage(afterImg, canvasWidth / 2, 0, canvasWidth / 2, canvasHeight);
-  }
-
-  drawPill(
+  // Use the template's drawOnCanvas method
+  await templateConfig.template.drawOnCanvas(
     ctx,
-    50, // x position
-    50, // y position
-    20, // padding
-    "Before", // text
-    40, // text size
-    "white", // text color
-    "#FF7700", // background color
-    1 // opacity
-  );
-  drawPill(
-    ctx,
-    canvasWidth - 250, // x position
-    50, // y position
-    20, // padding
-    "After", // text
-    40, // text size
-    "white", // text color
-    "#FF7700", // background color
-    1 // opacity
+    images,
+    canvasWidth,
+    canvasHeight,
+    caption,
+    labelStyle
   );
 };

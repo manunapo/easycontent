@@ -6,6 +6,7 @@ import TemplatePreview from "./template-preview";
 export default function Preview() {
   const {
     selectedTemplate,
+    selectedTemplateId,
     beforeImage,
     afterImage,
     activeOutputFormatId,
@@ -14,13 +15,13 @@ export default function Preview() {
   } = useImageEditor();
 
   const beforeCropPixels =
-    beforeImage.formatCrops[activeOutputFormatId]?.croppedAreaPixels;
+    beforeImage.templateFormatCrops[selectedTemplateId || '']?.[activeOutputFormatId]?.croppedAreaPixels;
   const afterCropPixels =
-    afterImage.formatCrops[activeOutputFormatId]?.croppedAreaPixels;
+    afterImage.templateFormatCrops[selectedTemplateId || '']?.[activeOutputFormatId]?.croppedAreaPixels;
 
   return (
     <TemplatePreview
-      key={activeOutputFormatId}
+      key={`${selectedTemplateId}-${activeOutputFormatId}`}
       selectedTemplate={selectedTemplate}
       beforeImageUrl={beforeImage.previewUrl}
       afterImageUrl={afterImage.previewUrl}
