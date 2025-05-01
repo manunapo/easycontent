@@ -1,4 +1,3 @@
-import SideBySideTemplate from "@/templates/SideBySideTemplate";
 import { Area, Point } from "react-easy-crop";
 
 export type OutputFormatId = "instagram" | "facebook" | "pinterest";
@@ -147,28 +146,6 @@ export interface BaseTemplateProps {
 export interface TemplateConfig {
   id: string;
   name: string;
-  component: React.FC<BaseTemplateProps>;
   thumbnail: string;
   template: Template; // Reference to the Template instance
 }
-
-// Export TemplateConfig as Template for easier usage
-export type TemplateConfigType = TemplateConfig;
-
-// Legacy template config (to be deprecated)
-export interface LegacyTemplateConfig {
-  id: string;
-  name: string;
-  component: React.FC<BaseTemplateProps>;
-  thumbnail: string;
-}
-
-// To be refactored - this will be replaced by the new approach
-export const TEMPLATES: Partial<Record<TemplateId, LegacyTemplateConfig>> = {
-  "before-after": {
-    id: "before-after",
-    name: "Before/After",
-    thumbnail: "before-after",
-    component: SideBySideTemplate,
-  },
-};

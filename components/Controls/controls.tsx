@@ -48,7 +48,7 @@ export default function Controls() {
         isOpen={formatsIsOpen}
         setIsOpen={setFormatsIsOpen}
         enabled={isEnabled}
-        isCollapsable={false}
+        isCollapsable={!isEnabled || false}
       >
         <FormatHandler />
       </CollapsableContainer>

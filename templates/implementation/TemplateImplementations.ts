@@ -305,10 +305,3 @@ function drawCaption(
   // Use the shared drawCaptionPill function
   drawCaptionPill(ctx, caption, canvasWidth, canvasHeight);
 }
-
-// Export template instances
-export const TEMPLATE_INSTANCES = {
-  "side-by-side": new SideBySideTemplate(),
-  "stacked": new StackedTemplate(),
-  "diagonal": new DiagonalTemplate(),
-}; 
