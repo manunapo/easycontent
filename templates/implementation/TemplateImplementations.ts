@@ -1,6 +1,6 @@
 import { Area } from "react-easy-crop";
 import { Template, TemplateRequiredInput, OutputFormat, CaptionState, LabelStyleState } from "@/types";
-import { drawPill, drawCaptionPill } from "@/lib/canvasUtils";
+import { drawCaptionPill, drawPositionedLabel, drawLine } from "@/lib/canvasUtils";
 
 // Base class for templates that require both before and after images
 abstract class BeforeAfterTemplate extends Template {
@@ -21,42 +21,6 @@ abstract class BeforeAfterTemplate extends Template {
     caption?: CaptionState,
     labelStyle?: LabelStyleState
   ): Promise<void>;
-  
-  // Draw a template-specific label using drawPill
-  drawTemplateLabel(
-    ctx: CanvasRenderingContext2D,
-    text: string,
-    x: number,
-    y: number,
-    style: LabelStyleState
-  ) {
-    // Set font size based on style
-    let textSize = 14;
-    switch (style.size) {
-      case "small":
-        textSize = 12;
-        break;
-      case "medium":
-        textSize = 16;
-        break;
-      case "large":
-        textSize = 24;
-        break;
-    }
-    
-    // Use drawPill from canvasUtils.ts
-    drawPill(
-      ctx,
-      x,
-      y,
-      8, // increased padding from 8 to 16
-      text,
-      textSize,
-      style.textColor,
-      style.bgColor,
-      1.0 // opacity
-    );
-  }
 }
 
 export class SideBySideTemplate extends BeforeAfterTemplate {
@@ -107,10 +71,32 @@ export class SideBySideTemplate extends BeforeAfterTemplate {
       height
     );
 
+    // Draw a vertical line
+    drawLine(ctx, width / 2, 0, width / 2, height, "white", 10);
+
     // Draw labels if provided
     if (labelStyle) {
-      this.drawTemplateLabel(ctx, "Before", 10, 10, labelStyle);
-      this.drawTemplateLabel(ctx, "After", width / 2 + 10, 10, labelStyle);
+      drawPositionedLabel(
+        ctx, 
+        "BEFORE", 
+        "top-left", 
+        width, 
+        height, 
+        labelStyle.size === "small" ? 16 : labelStyle.size === "medium" ? 20 : 28,
+        labelStyle.textColor,
+        labelStyle.bgColor
+      );
+      
+      drawPositionedLabel(
+        ctx, 
+        "AFTER", 
+        "top-right", 
+        width, 
+        height, 
+        labelStyle.size === "small" ? 16 : labelStyle.size === "medium" ? 20 : 28,
+        labelStyle.textColor,
+        labelStyle.bgColor
+      );
     }
 
     // Draw caption if provided
@@ -168,10 +154,32 @@ export class StackedTemplate extends BeforeAfterTemplate {
       height / 2
     );
 
+    // Draw a horizontal line
+    drawLine(ctx, 0, height / 2, width, height / 2, "white", 10);
+
     // Draw labels if provided
     if (labelStyle) {
-      this.drawTemplateLabel(ctx, "Before", 10, 10, labelStyle);
-      this.drawTemplateLabel(ctx, "After", 10, height / 2 + 10, labelStyle);
+      drawPositionedLabel(
+        ctx, 
+        "BEFORE", 
+        "top-left", 
+        width, 
+        height, 
+        labelStyle.size === "small" ? 16 : labelStyle.size === "medium" ? 20 : 28,
+        labelStyle.textColor,
+        labelStyle.bgColor
+      );
+      
+      drawPositionedLabel(
+        ctx, 
+        "AFTER", 
+        "bottom-left", 
+        width, 
+        height, 
+        labelStyle.size === "small" ? 16 : labelStyle.size === "medium" ? 20 : 28,
+        labelStyle.textColor,
+        labelStyle.bgColor
+      );
     }
 
     // Draw caption if provided
@@ -244,17 +252,33 @@ export class DiagonalTemplate extends BeforeAfterTemplate {
     ctx.restore();
 
     // Draw a diagonal line
-    ctx.beginPath();
-    ctx.moveTo(0, height);
-    ctx.lineTo(width, 0);
-    ctx.strokeStyle = "white";
-    ctx.lineWidth = 3;
-    ctx.stroke();
+    drawLine(ctx, 0, height, width, 0, "white", 10);
 
     // Draw labels if provided
     if (labelStyle) {
-      this.drawTemplateLabel(ctx, "Before", 10, 10, labelStyle);
-      this.drawTemplateLabel(ctx, "After", width - 120, height - 50, labelStyle);
+      drawPositionedLabel(
+        ctx, 
+        "BEFORE", 
+        "top-left", 
+        width, 
+        height, 
+        labelStyle.size === "small" ? 16 : labelStyle.size === "medium" ? 20 : 28,
+        labelStyle.textColor,
+        labelStyle.bgColor,
+        1.0
+      );
+      
+      drawPositionedLabel(
+        ctx, 
+        "AFTER", 
+        "bottom-right", 
+        width, 
+        height, 
+        labelStyle.size === "small" ? 16 : labelStyle.size === "medium" ? 20 : 28,
+        labelStyle.textColor,
+        labelStyle.bgColor,
+        1.0
+      );
     }
 
     // Draw caption if provided

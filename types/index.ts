@@ -5,11 +5,11 @@ export type OutputFormatId = "instagram" | "facebook" | "pinterest";
 export const OUTPUT_FORMATS: Record<OutputFormatId, OutputFormat> = {
   instagram: {
     id: "instagram",
-    name: "Instagram (9:16)",
+    name: "Instagram (4:5)",
     icon: "instagram",
-    aspectRatio: 9 / 16,
+    aspectRatio: 4 / 5,
     width: 1080,
-    height: 1920,
+    height: 1350,
   },
   facebook: {
     id: "facebook",
